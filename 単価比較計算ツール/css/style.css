@@ -1,0 +1,142 @@
+*, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --border-color: #e1e4e8;
+            --highlight-color: #ffebee;
+            --highlight-border: #f44336;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h2 { margin: 0; }
+        
+        button {
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+        
+        button:hover { background-color: #357abd; }
+        .btn-remove { background-color: #6c757d; padding: 6px 12px; font-size: 12px; }
+        .btn-remove:hover { background-color: #5a6268; }
+        
+        .items-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .item-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        /* 最安値のハイライト */
+        .item-card.is-cheapest {
+            background-color: var(--highlight-color);
+            border-color: var(--highlight-border);
+            box-shadow: 0 0 8px rgba(244, 67, 54, 0.3);
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .input-group label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"], input[type="number"], select {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px; /* スマホのズーム防止 */
+        }
+        
+        .item-name { width: 150px; }
+        .item-price { width: 100px; text-align: right; }
+        .item-qty { width: 100px; text-align: right; }
+        
+        .result-display {
+            margin-left: auto;
+            text-align: right;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            background: #eef2f5;
+            padding: 8px 15px;
+            border-radius: 4px;
+            min-width: 180px;
+        }
+        
+        .item-card.is-cheapest .result-display {
+            background: var(--highlight-border);
+            color: white;
+        }
+        
+        .cheapest-badge {
+            display: none;
+            color: white;
+            background-color: var(--highlight-border);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        
+        .item-card.is-cheapest .cheapest-badge {
+            display: inline-block;
+        }
+
+        /* スマホ用レスポンシブ */
+        @media screen and (max-width: 768px) {
+            body { padding: 10px; }
+            .item-card { flex-direction: column; align-items: stretch; gap: 10px; }
+            .input-group { flex-wrap: wrap; }
+            .item-name { width: 100%; }
+            .item-price, .item-qty { flex: 1; min-width: 0; }
+            .result-display { margin-left: 0; text-align: center; }
+            .remove-wrapper { text-align: right; }
+        }

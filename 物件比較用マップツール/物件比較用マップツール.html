@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>物件マップ｜価格・メモ管理</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'" />
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">⌖</div>
+      <div>
+        <h1>物件マップ</h1>
+        <p>地図で場所を確認しながら、価格とメモをまとめて管理</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="fitBtn" type="button" title="登録した物件がすべて見えるように地図を調整">全物件を表示</button>
+      <button class="btn btn-primary" id="openCsvBtn" type="button">＋ 物件を入力</button>
+    </div>
+  </header>
+  <main class="workspace">
+    <section class="map-wrap" aria-label="物件マップ">
+      <div id="map"></div>
+      <div class="map-badge"><strong id="mapCount">0</strong>件の物件 <span>· ピンを押して詳細を見る</span></div>
+      <div class="map-error" id="mapError" role="status">地図画像を取得できません。ネットワークやセキュリティ設定をご確認ください。</div>
+    </section>
+    <aside class="sidebar" aria-label="物件情報">
+      <div class="side-head">
+        <div class="side-head-row"><h2>物件一覧・メモ</h2><span class="count" id="countBadge">0件</span></div>
+        <p class="side-sub">物件を選ぶと地図が移動します。情報とメモはこのブラウザに保存されます。</p>
+        <div class="backup-actions" aria-label="物件データのバックアップ">
+          <button class="btn" id="exportCsvBtn" type="button" title="登録中の全物件をCSVファイルとして保存">CSVを保存</button>
+          <button class="btn" id="copyCsvBtn" type="button" title="登録中の全物件のCSV内容をクリップボードにコピー">CSV内容をコピー</button>
+        </div>
+        <div class="status backup-status" id="backupStatus" role="status" aria-live="polite"></div>
+      </div>
+      <div class="side-content" id="propertyList"></div>
+      <div class="side-footer">住所から位置を取得できなかった物件も一覧には残ります。住所を見直してCSVを再入力してください。</div>
+    </aside>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="csvModal" role="dialog" aria-modal="true" aria-labelledby="csvTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="csvTitle">CSV形式で物件を入力</h2>
+        <p>1行につき1物件を入力します。すでに登録済みの物件は置き換えず、入力した物件を追加します。</p>
+      </div>
+      <button class="icon-btn" id="closeModalBtn" type="button" aria-label="閉じる">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="format-box">
+        <strong>入力形式（この順番・6項目）</strong>
+        <div class="csv-sample">タイトル,間取り,価格,メモ,住所,URL
+駅近マンション,1LDK,2380万円,駅から近い・内見したい,愛知県名古屋市中区栄1丁目,https://example.com/property/123</div>
+      </div>
+      <label class="field-label" for="csvText">物件データ</label>
+      <textarea class="csv-input" id="csvText" spellcheck="false" placeholder="タイトル,間取り,価格,メモ,住所,URL&#10;駅近マンション,1LDK,2380万円,駅から近い・内見したい,愛知県名古屋市中区栄1丁目,https://example.com/property/123"></textarea>
+      <p class="modal-note">・1行目に「タイトル,間取り,価格,メモ,住所,URL」の見出しを書いても認識します。URL列は省略可能です。旧形式の5項目CSVも読み込めます。<br>・メモ内にカンマを含む場合は、その項目をダブルクォートで囲んでください。<br>・価格は「2380万円」「23800000」などで入力できます（「2,380万円」のようにカンマを入れる場合は、その項目をダブルクォートで囲んでください）。<br>・URLは物件掲載ページなどのリンクを入力します。リンクは物件カードから開けます。<br>・地図上の位置を特定するため、住所は番地・建物名までできるだけ詳しく入力してください。</p>
+      <div id="importStatus" class="status" role="status"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="foot-left">データはこのブラウザ内に保存されます。</div>
+      <div class="foot-actions">
+        <button class="btn" id="cancelImportBtn" type="button">キャンセル</button>
+        <button class="btn btn-primary" id="importBtn" type="button">読み込んで地図に表示</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+  <div class="modal" style="width:min(650px, 100%);">
+    <div class="modal-head">
+      <div>
+        <h2 id="editTitle">物件情報を修正</h2>
+        <p>内容を修正して保存してください。住所を変更すると、地図上の位置を再検索します。</p>
+      </div>
+      <button class="icon-btn" id="closeEditModalBtn" type="button" aria-label="閉じる">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field full"><label class="field-label" for="editTitleInput">タイトル *</label><input class="form-input" id="editTitleInput" type="text" required></div>
+        <div class="form-field"><label class="field-label" for="editLayoutInput">間取り</label><input class="form-input" id="editLayoutInput" type="text" placeholder="例：1LDK"></div>
+        <div class="form-field"><label class="field-label" for="editPriceInput">価格</label><input class="form-input" id="editPriceInput" type="text" placeholder="例：2380万円"></div>
+        <div class="form-field full"><label class="field-label" for="editAddressInput">住所 *</label><input class="form-input" id="editAddressInput" type="text" required></div>
+        <div class="form-field full"><label class="field-label" for="editUrlInput">物件URL</label><input class="form-input" id="editUrlInput" type="url" placeholder="https://..."></div>
+        <div class="form-field full"><label class="field-label" for="editMemoInput">メモ</label><textarea class="form-textarea" id="editMemoInput" placeholder="気になる点、内見予定など"></textarea></div>
+      </div>
+      <p class="edit-note">URLを入力すると、物件一覧の「掲載ページを開く」から別タブで開けます。</p>
+      <div id="editStatus" class="status" role="status"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="foot-left">保存すると、このブラウザのデータが更新されます。</div>
+      <div class="foot-actions">
+        <button class="btn" id="cancelEditBtn" type="button">キャンセル</button>
+        <button class="btn btn-primary" id="saveEditBtn" type="button">変更を保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="backupModal" role="dialog" aria-modal="true" aria-labelledby="backupModalTitle">
+  <div class="modal" style="width:min(760px, 100%);">
+    <div class="modal-head">
+      <div>
+        <h2 id="backupModalTitle">CSV内容をコピー</h2>
+        <p>自動コピーが許可されませんでした。下の内容を選択して手動でコピーできます。</p>
+      </div>
+      <button class="icon-btn" id="closeBackupModalBtn" type="button" aria-label="閉じる">×</button>
+    </div>
+    <div class="modal-body">
+      <label class="field-label" for="backupCsvText">バックアップ用CSVテキスト</label>
+      <textarea class="csv-input" id="backupCsvText" readonly spellcheck="false" aria-describedby="backupModalNote"></textarea>
+      <p class="modal-note" id="backupModalNote">内容を選択済みです。コピーできない場合は、テキスト欄をクリックして Ctrl+C（Macは⌘+C）を押してください。コピーした内容はテキストエディタに貼り付け、.csv 形式で保存できます。</p>
+      <div id="backupCopyStatus" class="status" role="status" aria-live="polite"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="foot-left">CSVにはタイトル・間取り・価格・メモ・住所・URLが含まれます。</div>
+      <div class="foot-actions">
+        <button class="btn" id="closeBackupModalBtn2" type="button">閉じる</button>
+        <button class="btn btn-primary" id="retryCopyBtn" type="button">コピーを再試行</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'"></script>
+<script src="./js/app.js"></script>
+
+<script src="./js/backup.js"></script>
+
+</body>
+</html>

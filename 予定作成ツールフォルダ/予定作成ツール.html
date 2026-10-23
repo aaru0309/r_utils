@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>スケジュール作成ツール</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+    <div class="header">
+        <h2>スケジュール作成ツール</h2>
+        <div class="controls">
+            <label>
+                日程: 
+                <select id="durationSelect" onchange="handleDurationSelect()">
+                    <option value="1">日帰り</option>
+                    <option value="2" selected>1泊2日</option>
+                    <option value="3">2泊3日</option>
+                    <option value="other">その他</option>
+                </select>
+            </label>
+            
+            <span id="customDuration">
+                <select id="customNights" onchange="updateCustomDaysOptions()"></select> 泊
+                <select id="customDays" onchange="updateDuration()"></select> 日
+            </span>
+
+            <button onclick="addCandidate()">＋ 候補を追加</button>
+            <button class="btn-import" onclick="openImportModal()">📥 読込</button>
+            
+            <div class="export-group">
+                <select id="exportAction">
+                    <option value="download">💾 保存</option>
+                    <option value="copy">📋 コピー</option>
+                </select>
+                <button class="btn-save" onclick="executeExport()">実行</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="candidates-container" id="candidatesContainer"></div>
+
+    <div class="modal-overlay" id="importModal">
+        <div class="modal-content">
+            <h3 style="margin: 0;">テキストから復元</h3>
+            <p style="margin: 0; font-size: 13px; color: #666;">コピーしたテキストデータを貼り付けてください。現在の入力内容は上書きされます。</p>
+            <textarea id="importText" placeholder="【プラン名 N泊M日】..."></textarea>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeImportModal()">キャンセル</button>
+                <button class="btn-import" onclick="executeImport()">復元する</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/app.js"></script>
+</body>
+</html>

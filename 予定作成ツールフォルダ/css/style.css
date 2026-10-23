@@ -1,0 +1,202 @@
+*, *::before, *::after { box-sizing: border-box; }
+        
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --border-color: #e1e4e8;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color);
+            flex-wrap: wrap; gap: 15px;
+        }
+        .header h2 { margin: 0; }
+        
+        .controls {
+            display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
+            margin-left: auto; justify-content: flex-end;
+        }
+        
+        select, button, input, textarea {
+            padding: 8px 12px; border: 1px solid var(--border-color);
+            border-radius: 4px; font-size: 14px;
+        }
+        
+        button {
+            background-color: var(--primary-color); color: white; border: none;
+            cursor: pointer; transition: background-color 0.2s; white-space: nowrap;
+        }
+        button:hover { background-color: #357abd; }
+        
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        
+        /* タイトルボタン */
+        .btn-title-toggle { background-color: #9b59b6; }
+        .btn-title-toggle:hover { background-color: #8e44ad; }
+        
+        .btn-cost { background-color: #f39c12; }
+        .btn-cost:hover { background-color: #e67e22; }
+        
+        .btn-url-toggle { background-color: #17a2b8; padding: 6px 8px !important; }
+        .btn-url-toggle:hover { background-color: #138496; }
+        
+        .btn-save { background-color: #28a745; font-weight: bold; }
+        .btn-save:hover { background-color: #218838; }
+        .btn-import { background-color: #8e44ad; font-weight: bold; }
+        .btn-import:hover { background-color: #732d91; }
+        
+        /* 順番入れ替え・任意追加ボタン */
+        .btn-move { background-color: #e9ecef; color: #495057; padding: 6px 8px !important; border: 1px solid #ced4da; }
+        .btn-move:hover { background-color: #dde2e6; color: #333; }
+        .btn-add-inline { background-color: #28a745; color: white; padding: 6px 8px !important; border: 1px solid #218838; margin-right: 5px; }
+        .btn-add-inline:hover { background-color: #218838; }
+
+        .export-group { display: flex; gap: 5px; align-items: center; }
+
+        .candidates-container {
+            display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px;
+            -webkit-overflow-scrolling: touch; 
+        }
+        
+        .candidate-card {
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 8px; min-width: 800px; padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; flex-shrink: 0;
+        }
+        
+        .candidate-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; gap: 10px;
+        }
+        .candidate-header input { font-size: 18px; font-weight: bold; flex-grow: 1; border: none; border-bottom: 1px solid var(--border-color); min-width: 0; }
+        .card-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+        
+        /* 各日のコンテナ (背景色設定) */
+        .day-section { 
+            margin-bottom: 15px; 
+            border: 1px solid #c9d6df; 
+            padding: 12px; 
+            border-radius: 6px; 
+            background-color: #f4f7fb; 
+        }
+        .day-title-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border-bottom: 1px solid #dce1e6; padding-bottom: 5px; flex-wrap: wrap; }
+        .day-title { font-weight: bold; color: var(--primary-color); white-space: nowrap; }
+        .day-date { padding: 4px 8px; background-color: #fff; }
+        .day-weekday { font-size: 13px; color: #555; }
+        
+        /* 各日のタイトル(テーマ)入力欄 */
+        .day-title-container {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+            flex-grow: 1;
+            max-width: 350px;
+        }
+        .candidate-card.show-titles .day-title-container { display: inline-flex; }
+        .day-subtitle {
+            flex-grow: 1;
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 0;
+        }
+
+        /* 日別メモ欄 */
+        .day-memo-wrapper {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .day-memo-wrapper textarea {
+            width: 100%;
+            height: 45px;
+            resize: vertical;
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
+        .event-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #b9c5ce; }
+        .event-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .event-row-top { display: flex; gap: 5px; margin-bottom: 5px; align-items: center; flex-wrap: wrap; }
+        .event-row-middle { display: flex; padding-left: 2px; margin-bottom: 5px; }
+        
+        .event-row-bottom, .event-row-cost, .plan-costs-summary, .daily-cost-summary, .event-row-time-calc { display: none; }
+        
+        .event-item.show-url .event-row-bottom { display: flex; padding-left: 2px; margin-bottom: 5px; }
+        
+        .candidate-card.show-costs .event-row-cost { display: flex; gap: 10px; align-items: center; font-size: 13px; padding-left: 2px; margin-bottom: 5px; flex-wrap: wrap; }
+        .candidate-card.show-costs .plan-costs-summary { display: block; }
+        .candidate-card.show-costs .daily-cost-summary { display: inline-block; }
+        
+        .event-time { width: 85px; padding: 6px !important; }
+        .event-type { width: 65px; padding: 6px !important; }
+        .event-dest { flex-grow: 1; min-width: 100px; }
+        
+        .transport-group { display: inline-flex; gap: 5px; align-items: center; }
+        .transport-type { width: 100px; padding: 6px !important; }
+        .transport-other { width: 80px; padding: 6px !important; }
+        
+        .duration-group { display: inline-flex; gap: 2px; align-items: center; }
+        .duration-time { width: 60px; padding: 6px !important; text-align: right; }
+        
+        .event-content { width: 100%; max-width: 100%; height: 50px; resize: vertical; font-family: inherit; }
+        .event-url { width: 100%; max-width: 100%; }
+        
+        .cost-input { width: 80px; padding: 4px !important; margin-left: 5px; }
+        
+        .calc-time-result { font-size: 13px; color: #d35400; font-weight: bold; padding-left: 4px; }
+
+        .btn-reset-event { background-color: #6c757d; padding: 6px 8px !important; }
+        .btn-reset-event:hover { background-color: #5a6268; }
+        .remove-row { background-color: #dc3545; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .remove-row:hover { background-color: #c82333; }
+        
+        .plan-costs-summary { margin-top: 10px; margin-bottom: 15px; padding: 10px; background: #eef2f5; border-radius: 4px; }
+        .memo-section { margin-top: auto; padding-top: 5px; }
+        .memo-section textarea { width: 100%; height: 80px; resize: vertical; }
+
+        #customDuration { display: none; align-items: center; gap: 5px; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #fff; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .modal-content textarea { width: 100%; height: 250px; font-family: monospace; resize: vertical; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+        @media screen and (max-width: 768px) {
+            body { padding: 10px; }
+            select, button, input, textarea { font-size: 16px !important; }
+            .candidate-card { min-width: 90vw; width: 90vw; padding: 10px; }
+            .event-row-top { flex-wrap: wrap; }
+            .event-time { flex: 0 0 85px; }
+            .event-type { flex: 0 0 65px; }
+            .event-dest { flex: 1 1 calc(100% - 170px); }
+            .transport-group { flex: 1 1 100%; }
+            .transport-type, .transport-other { flex: 1 1 45%; min-width: 80px; }
+            .duration-group { flex: 1 1 100%; justify-content: flex-start; }
+            .event-row-middle { padding-left: 0; }
+            .candidate-card.show-costs .daily-cost-summary { display: block; width: 100%; margin-left: 0 !important; text-align: right; }
+            .day-title-container { flex: 1 1 100%; order: 4; margin-top: 5px; }
+            .daily-cost-summary { order: 3; }
+        }

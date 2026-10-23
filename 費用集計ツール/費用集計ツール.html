@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>集計</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<h2>集計</h2>
+
+<!-- ★ テキストからの復元機能エリア ★ -->
+<details class="import-section">
+  <summary>📎 以前コピーしたテキストから入力を復元する</summary>
+  <div>
+    <textarea id="import-text" rows="4" placeholder="「テキストをコピー」で取得したテキストをそのまま貼り付けてください..."></textarea>
+    <button id="import-button">復元する</button>
+  </div>
+</details>
+
+<div id="input-container">
+  <!-- JavaScriptで入力行が自動生成されます -->
+</div>
+
+<button id="calc-button">集計</button>
+
+<div id="result-container">
+  <div id="result-area"></div>
+  <button id="copy-button">テキストをコピー</button>
+</div>
+
+<script src="./js/app.js"></script>
+</body>
+</html>
