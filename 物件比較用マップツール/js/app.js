@@ -3,6 +3,37 @@
   const $ = id => document.getElementById(id);
   const STORAGE_KEY = 'property-map-data-v1';
 
+  // スマートフォン用：地図と物件一覧を切り替える。Leafletが読み込めなくても操作できる。
+  const workspaceEl = document.querySelector('.workspace');
+  const viewToggleBtn = $('viewToggleBtn');
+  const viewToggleLabel = $('viewToggleLabel');
+  const mobileViewQuery = window.matchMedia('(max-width: 800px)');
+
+  function applyMobileView(showList) {
+    if (!workspaceEl) return;
+    const listActive = mobileViewQuery.matches && showList;
+    workspaceEl.classList.toggle('show-list', listActive);
+    if (viewToggleLabel) viewToggleLabel.textContent = listActive ? '地図に戻る' : '物件一覧';
+    if (viewToggleBtn) {
+      viewToggleBtn.setAttribute('aria-pressed', String(listActive));
+      viewToggleBtn.setAttribute('aria-label', listActive ? '地図を表示' : '物件一覧を表示');
+    }
+    window.dispatchEvent(new CustomEvent('property-map-view-changed', { detail: { showList: listActive } }));
+  }
+
+  if (viewToggleBtn) {
+    viewToggleBtn.addEventListener('click', () => {
+      applyMobileView(!workspaceEl.classList.contains('show-list'));
+    });
+  }
+  const handleMobileBreakpointChange = () => applyMobileView(false);
+  if (typeof mobileViewQuery.addEventListener === 'function') {
+    mobileViewQuery.addEventListener('change', handleMobileBreakpointChange);
+  } else if (typeof mobileViewQuery.addListener === 'function') {
+    mobileViewQuery.addListener(handleMobileBreakpointChange);
+  }
+  applyMobileView(false);
+
   if (!window.L) {
     $('mapError').style.display = 'block';
     $('mapError').textContent = '地図表示用ライブラリを読み込めませんでした。ネットワークで unpkg.com / jsdelivr.net への接続が許可されているか確認してください。物件一覧と保存データは引き続き利用できます。';
@@ -25,6 +56,12 @@
     }
   ];
   const map = L.map('map', { zoomControl: true, minZoom: 5, maxZoom: 18 }).setView([35.1709, 136.8815], 12);
+  // 一覧から地図へ戻ったとき、非表示中に変わったコンテナサイズを再計算する。
+  window.addEventListener('property-map-view-changed', event => {
+    if (!event.detail || !event.detail.showList) {
+      setTimeout(() => map.invalidateSize({ pan: false }), 100);
+    }
+  });
   let activeTileLayer = null;
   let activeBasemapIndex = -1;
   let baseMapLoaded = false;

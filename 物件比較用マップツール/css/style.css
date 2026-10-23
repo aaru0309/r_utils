@@ -132,3 +132,61 @@
       .foot-left { display:none; }
       .modal-foot { justify-content:flex-end; }
     }
+
+
+/* スマートフォンでは、地図と物件一覧を1画面ずつ切り替えて表示する */
+.mobile-view-toggle { display: none; }
+.hamburger-icon { display: inline-block; font-size: 18px; line-height: 1; }
+
+@media (max-width: 800px) {
+  body { overflow: hidden; }
+  .app { height: 100dvh; min-height: 0; }
+  .topbar { flex-shrink: 0; }
+  .top-actions { flex-shrink: 0; }
+  .mobile-view-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 8px 10px;
+  }
+  /* スマホでは地図と一覧を同じ領域に重ね、アクティブな方だけ表示 */
+  .workspace {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+  .map-wrap,
+  .sidebar {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+  .map-wrap { display: block; }
+  .sidebar {
+    display: none;
+    border-left: 0;
+    border-top: 0;
+    overflow: hidden;
+  }
+  .workspace.show-list .map-wrap { display: none; }
+  .workspace.show-list .sidebar { display: flex; }
+  .side-content { grid-template-columns: 1fr; overflow-y: auto; overscroll-behavior: contain; }
+  .map-badge { max-width: calc(100% - 20px); }
+}
+
+@media (max-width: 440px) {
+  .topbar { padding: 8px 10px; gap: 8px; }
+  .brand { flex: 1 1 auto; }
+  .brand h1 { font-size: 14px; }
+  .top-actions { gap: 5px; }
+  .top-actions #fitBtn { display: none; }
+  .top-actions .btn { padding: 8px 9px; font-size: 11px; }
+  .mobile-view-toggle { gap: 5px; }
+  .hamburger-icon { font-size: 17px; }
+}

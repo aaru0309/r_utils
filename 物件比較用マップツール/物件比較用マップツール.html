@@ -18,17 +18,20 @@
       </div>
     </div>
     <div class="top-actions">
+      <button class="btn mobile-view-toggle" id="viewToggleBtn" type="button" aria-controls="mapView propertySidebar" aria-pressed="false" aria-label="物件一覧を表示">
+        <span class="hamburger-icon" aria-hidden="true">☰</span><span id="viewToggleLabel">物件一覧</span>
+      </button>
       <button class="btn" id="fitBtn" type="button" title="登録した物件がすべて見えるように地図を調整">全物件を表示</button>
       <button class="btn btn-primary" id="openCsvBtn" type="button">＋ 物件を入力</button>
     </div>
   </header>
   <main class="workspace">
-    <section class="map-wrap" aria-label="物件マップ">
+    <section class="map-wrap" id="mapView" aria-label="物件マップ">
       <div id="map"></div>
       <div class="map-badge"><strong id="mapCount">0</strong>件の物件 <span>· ピンを押して詳細を見る</span></div>
       <div class="map-error" id="mapError" role="status">地図画像を取得できません。ネットワークやセキュリティ設定をご確認ください。</div>
     </section>
-    <aside class="sidebar" aria-label="物件情報">
+    <aside class="sidebar" id="propertySidebar" aria-label="物件情報">
       <div class="side-head">
         <div class="side-head-row"><h2>物件一覧・メモ</h2><span class="count" id="countBadge">0件</span></div>
         <p class="side-sub">物件を選ぶと地図が移動します。情報とメモはこのブラウザに保存されます。</p>
