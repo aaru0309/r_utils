@@ -3,12 +3,11 @@
   const $ = id => document.getElementById(id);
   const STORAGE_KEY = 'property-map-data-v1';
 
-  // スマートフォン用：地図と物件一覧を切り替える。Leafletが読み込めなくても操作できる。
+  // スマートフォンでは地図と物件一覧を切り替えて表示します。
   const workspaceEl = document.querySelector('.workspace');
   const viewToggleBtn = $('viewToggleBtn');
   const viewToggleLabel = $('viewToggleLabel');
   const mobileViewQuery = window.matchMedia('(max-width: 800px)');
-
   function applyMobileView(showList) {
     if (!workspaceEl) return;
     const listActive = mobileViewQuery.matches && showList;
@@ -20,18 +19,10 @@
     }
     window.dispatchEvent(new CustomEvent('property-map-view-changed', { detail: { showList: listActive } }));
   }
-
-  if (viewToggleBtn) {
-    viewToggleBtn.addEventListener('click', () => {
-      applyMobileView(!workspaceEl.classList.contains('show-list'));
-    });
-  }
+  if (viewToggleBtn) viewToggleBtn.addEventListener('click', () => applyMobileView(!workspaceEl.classList.contains('show-list')));
   const handleMobileBreakpointChange = () => applyMobileView(false);
-  if (typeof mobileViewQuery.addEventListener === 'function') {
-    mobileViewQuery.addEventListener('change', handleMobileBreakpointChange);
-  } else if (typeof mobileViewQuery.addListener === 'function') {
-    mobileViewQuery.addListener(handleMobileBreakpointChange);
-  }
+  if (typeof mobileViewQuery.addEventListener === 'function') mobileViewQuery.addEventListener('change', handleMobileBreakpointChange);
+  else if (typeof mobileViewQuery.addListener === 'function') mobileViewQuery.addListener(handleMobileBreakpointChange);
   applyMobileView(false);
 
   if (!window.L) {
@@ -56,12 +47,7 @@
     }
   ];
   const map = L.map('map', { zoomControl: true, minZoom: 5, maxZoom: 18 }).setView([35.1709, 136.8815], 12);
-  // 一覧から地図へ戻ったとき、非表示中に変わったコンテナサイズを再計算する。
-  window.addEventListener('property-map-view-changed', event => {
-    if (!event.detail || !event.detail.showList) {
-      setTimeout(() => map.invalidateSize({ pan: false }), 100);
-    }
-  });
+  window.addEventListener('property-map-view-changed', event => { if (!event.detail.showList) setTimeout(() => map.invalidateSize(), 80); });
   let activeTileLayer = null;
   let activeBasemapIndex = -1;
   let baseMapLoaded = false;

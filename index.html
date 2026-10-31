@@ -16,7 +16,7 @@
     h1 { margin:13px 0 12px; font-size:clamp(30px,5vw,46px); letter-spacing:-.04em; line-height:1.2; }
     .intro { margin:0; color:var(--muted); line-height:1.8; font-size:16px; max-width:680px; }
     .section-title { margin:34px 0 15px; font-size:17px; }
-    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:stretch; }
     .card { min-height:190px; display:flex; flex-direction:column; padding:22px; border:1px solid var(--line); border-radius:19px; background:var(--card); box-shadow:0 9px 26px rgba(31,49,87,.055); transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
     .card:hover { transform:translateY(-3px); border-color:#b8c9fb; box-shadow:0 15px 35px rgba(31,49,87,.1); }
     .card-top { display:flex; align-items:flex-start; gap:14px; }
@@ -37,34 +37,62 @@
     .update-list li { margin:5px 0; }
     .update-list time { color:var(--ink); font-weight:650; margin-right:7px; white-space:nowrap; }
     .update-history[open] { flex-basis:100%; margin-left:0; }
-    @media (max-width:650px) { .wrap { width:min(100% - 26px, 520px); padding-top:34px; } .grid { grid-template-columns:1fr; gap:12px; } .card { min-height:168px; padding:19px; } .intro { font-size:15px; } }
+    .topbar { display:flex; justify-content:flex-end; align-items:center; margin-bottom:18px; }
+    .menu-button { display:inline-flex; align-items:center; gap:9px; border:1px solid var(--line); border-radius:12px; padding:10px 14px; background:#fff; color:var(--ink); font:inherit; font-size:14px; font-weight:750; cursor:pointer; box-shadow:0 4px 14px rgba(31,49,87,.05); }
+    .menu-button:hover { border-color:#b8c9fb; background:var(--accent-soft); }
+    .menu-icon { font-size:20px; line-height:1; }
+    .drawer-backdrop { position:fixed; inset:0; z-index:90; background:rgba(15,23,42,.42); opacity:0; visibility:hidden; transition:opacity .2s ease,visibility .2s ease; }
+    .drawer { position:fixed; z-index:100; top:0; right:0; width:min(380px,88vw); height:100dvh; padding:24px; background:#fff; box-shadow:-14px 0 40px rgba(15,23,42,.16); transform:translateX(105%); visibility:hidden; transition:transform .22s ease,visibility .22s ease; overflow-y:auto; }
+    body.drawer-open { overflow:hidden; }
+    body.drawer-open .drawer-backdrop { opacity:1; visibility:visible; }
+    body.drawer-open .drawer { transform:translateX(0); visibility:visible; }
+    .drawer-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+    .drawer-head h2 { margin:0; font-size:20px; }
+    .drawer-close { width:40px; height:40px; border:1px solid var(--line); border-radius:11px; background:#fff; color:var(--ink); font-size:24px; cursor:pointer; }
+    .drawer-close:hover { background:var(--accent-soft); border-color:#b8c9fb; }
+    .drawer-label { margin:22px 0 10px; color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.06em; }
+    .drawer-link { display:flex; align-items:center; gap:12px; padding:15px 13px; margin:8px 0; border:1px solid var(--line); border-radius:13px; color:var(--ink); text-decoration:none; font-weight:700; }
+    .drawer-link:hover { border-color:#b8c9fb; background:var(--accent-soft); }
+    .drawer-link .icon { width:40px; height:40px; font-size:21px; }
+    .drawer-note { margin-top:18px; color:var(--muted); font-size:12px; line-height:1.7; }
+    @media (max-width:650px) { .wrap { width:min(100% - 20px, 520px); padding-top:26px; } .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; } .card { min-height:205px; padding:13px; border-radius:14px; } .card-top { display:block; } .card-top .icon { width:40px; height:40px; margin-bottom:10px; } .card h2 { font-size:15px; line-height:1.4; } .desc { font-size:12px; line-height:1.55; } .open { font-size:12px; padding-top:14px; } .intro { font-size:15px; } }
     @media (max-width:650px) { .updates { align-items:flex-start; flex-direction:column; gap:7px; margin-top:17px; padding:11px 13px; } .update-history { margin-left:0; } .update-history[open] { flex-basis:auto; width:100%; } }
   </style>
 </head>
 <body>
+  <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
+  <aside class="drawer" id="toolsDrawer" aria-label="その他のツール" aria-hidden="true">
+    <div class="drawer-head">
+      <h2>その他のツール</h2>
+      <button class="drawer-close" id="drawerClose" type="button" aria-label="メニューを閉じる">×</button>
+    </div>
+    <p class="drawer-label">ツール一覧</p>
+    <a class="drawer-link" href="./費用集計ツール/費用集計ツール.html"><span class="icon" aria-hidden="true">🧾</span><span>費用集計ツール</span></a>
+    <a class="drawer-link" href="./単価比較計算ツール/単価比較計算ツール.html"><span class="icon" aria-hidden="true">⚖️</span><span>単価比較計算ツール</span></a>
+    <p class="drawer-note">メニュー外を押すか、右上の「×」を押すと閉じます。</p>
+  </aside>
   <main class="wrap">
+    <div class="topbar">
+      <button class="menu-button" id="drawerOpen" type="button" aria-controls="toolsDrawer" aria-expanded="false"><span class="menu-icon" aria-hidden="true">☰</span>その他のツール</button>
+    </div>
     <header class="hero">
       <div class="eyebrow">Personal tools</div>
       <h1>HTMLツール集</h1>
       <p class="intro">日常の作業に使うツールを、ひとつのページにまとめました。使いたいツールを選んで開いてください。</p>
     </header>
     <h2 class="section-title">ツール一覧</h2>
-    <section class="grid" aria-label="ツール一覧">
-      <article class="card">
-        <div class="card-top"><div class="icon" aria-hidden="true">🗓️</div><div><h2>予定作成ツール</h2><p class="desc">予定や所要時間などを入力して、スケジュールを組み立てるツール。</p></div></div>
-        <a class="open" href="./予定作成ツールフォルダ/予定作成ツール.html"><span>ツールを開く</span><span aria-hidden="true">→</span></a>
-      </article>
-      <article class="card">
-        <div class="card-top"><div class="icon" aria-hidden="true">🧾</div><div><h2>費用集計ツール</h2><p class="desc">費用データを入力して合計し、必要に応じてデータを保存・復元。</p></div></div>
-        <a class="open" href="./費用集計ツール/費用集計ツール.html"><span>ツールを開く</span><span aria-hidden="true">→</span></a>
-      </article>
-      <article class="card">
-        <div class="card-top"><div class="icon" aria-hidden="true">⚖️</div><div><h2>単価比較計算ツール</h2><p class="desc">容量や単位が異なる商品を比較し、どれがお得かを計算。</p></div></div>
-        <a class="open" href="./単価比較計算ツール/単価比較計算ツール.html"><span>ツールを開く</span><span aria-hidden="true">→</span></a>
-      </article>
+    <section class="grid" aria-label="メインツール">
       <article class="card">
         <div class="card-top"><div class="icon" aria-hidden="true">🗺️</div><div><h2>物件比較用マップツール</h2><p class="desc">物件の場所や価格を地図上で確認し、間取り・メモ・掲載URLを管理。</p></div></div>
         <a class="open" href="./物件比較用マップツール/物件比較用マップツール.html"><span>ツールを開く</span><span aria-hidden="true">→</span></a>
+      </article>
+      <article class="card csv-card">
+        <div class="card-top"><div class="icon" aria-hidden="true">📄</div><div><h2>物件CSV作成ツール</h2><p class="desc">物件情報を入力、またはSUUMOの掲載URLから読み取り、マップ用データを作成。</p></div></div>
+        <a class="open" href="./物件CSV作成ツール/物件CSV作成ツール.html"><span>ツールを開く</span><span aria-hidden="true">→</span></a>
+      </article>
+      <article class="card">
+        <div class="card-top"><div class="icon" aria-hidden="true">🗓️</div><div><h2>予定作成ツール</h2><p class="desc">予定や所要時間などを入力して、スケジュールを組み立てるツール。</p></div></div>
+        <a class="open" href="./予定作成ツールフォルダ/予定作成ツール.html"><span>ツールを開く</span><span aria-hidden="true">→</span></a>
       </article>
     </section>
 
@@ -72,17 +100,50 @@
       <div class="update-date">
         <span aria-hidden="true">🕒</span>
         <span>最終更新日</span>
-        <strong><time datetime="2026-10-23">2026年10月23日</time></strong>
+        <strong><time datetime="2026-10-31">2026年10月31日</time></strong>
       </div>
       <details class="update-history">
         <summary>更新履歴を見る</summary>
         <ul class="update-list">
+          <li><time datetime="2026-10-31">2026年10月31日</time>更新情報欄を追加。最終更新日と更新履歴を確認できるようにしました。</li>
           <li><time datetime="2026-10-23">2026年10月23日</time><br>更新情報欄を追加。最終更新日と更新履歴を確認できるようにしました。<br>物件比較用マップツールをスマホサイズに対応。地図と物件一覧をトグル式に変更。</li>
+          <li><time datetime="2026-10-31">2026年10月31日</time><br>メイン画面を修正。<br>マップツール用の入力データ作成ツール追加。<br>物件比較ツールと物件用CSVファイルツールに相互移動とメイン画面にもどるUI追加。</li>
         </ul>
       </details>
     </section>
 
     <footer>このページは静的HTMLで構成されています。物件マップの地図表示・住所検索にはインターネット接続が必要です。ブラウザ内に保存されるデータは、端末やブラウザ間で自動共有されません。</footer>
   </main>
+  <script>
+    (() => {
+      const drawer = document.getElementById('toolsDrawer');
+      const openButton = document.getElementById('drawerOpen');
+      const closeButton = document.getElementById('drawerClose');
+      const backdrop = document.getElementById('drawerBackdrop');
+      function openDrawer() {
+        document.body.classList.add('drawer-open');
+        drawer.setAttribute('aria-hidden', 'false');
+        openButton.setAttribute('aria-expanded', 'true');
+        closeButton.focus();
+      }
+      function closeDrawer() {
+        document.body.classList.remove('drawer-open');
+        drawer.setAttribute('aria-hidden', 'true');
+        openButton.setAttribute('aria-expanded', 'false');
+        openButton.focus();
+      }
+      openButton.addEventListener('click', openDrawer);
+      closeButton.addEventListener('click', closeDrawer);
+      backdrop.addEventListener('click', closeDrawer);
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && document.body.classList.contains('drawer-open')) closeDrawer();
+      });
+      drawer.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+        document.body.classList.remove('drawer-open');
+        drawer.setAttribute('aria-hidden', 'true');
+        openButton.setAttribute('aria-expanded', 'false');
+      }));
+    })();
+  </script>
 </body>
 </html>

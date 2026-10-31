@@ -6,9 +6,25 @@
   <title>物件マップ｜価格・メモ管理</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'" />
   <link rel="stylesheet" href="./css/style.css">
-</head>
+<style>
+/* 物件マップ ⇄ CSV作成ツールの常時表示ナビゲーション */
+.tool-switchbar{position:sticky;top:0;z-index:5000;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:8px 16px;background:#172b4d;color:#fff;box-shadow:0 3px 12px rgba(15,23,42,.16);}
+.tool-switchbar .switch-links{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.tool-switchbar .switch-caption{font-size:12px;font-weight:700;letter-spacing:.03em;opacity:.88;}
+.tool-switchbar .switch-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 15px;border:1px solid rgba(255,255,255,.45);border-radius:10px;background:#fff;color:#1d4ed8;text-decoration:none;font-size:13px;font-weight:800;white-space:nowrap;transition:background .15s ease,transform .15s ease;}
+.tool-switchbar .switch-button:hover{background:#eaf1ff;transform:translateY(-1px);}
+.tool-switchbar .switch-button:focus-visible{outline:3px solid #fbbf24;outline-offset:2px;}
+@media(max-width:520px){.tool-switchbar{min-height:50px;padding:7px 8px;gap:6px}.tool-switchbar .switch-caption{font-size:10px}.tool-switchbar .switch-links{gap:5px}.tool-switchbar .switch-button{min-height:36px;padding:7px 8px;font-size:11px}}
+</style></head>
 <body>
 <div class="app">
+  <nav class="tool-switchbar" aria-label="ツール間の移動">
+    <span class="switch-caption">物件管理ツール</span>
+    <div class="switch-links">
+      <a class="switch-button" href="../index.html" aria-label="メインページへ戻る">← メインページ</a>
+      <a class="switch-button" href="../物件CSV作成ツール/物件CSV作成ツール.html" aria-label="物件CSV作成ツールへ移動">CSV作成ツールへ →</a>
+    </div>
+  </nav>
   <header class="topbar">
     <div class="brand">
       <div class="brand-icon" aria-hidden="true">⌖</div>
@@ -18,9 +34,7 @@
       </div>
     </div>
     <div class="top-actions">
-      <button class="btn mobile-view-toggle" id="viewToggleBtn" type="button" aria-controls="mapView propertySidebar" aria-pressed="false" aria-label="物件一覧を表示">
-        <span class="hamburger-icon" aria-hidden="true">☰</span><span id="viewToggleLabel">物件一覧</span>
-      </button>
+      <button class="btn mobile-view-toggle" id="viewToggleBtn" type="button" aria-controls="mapView propertySidebar" aria-pressed="false" aria-label="物件一覧を表示"><span class="hamburger-icon" aria-hidden="true">☰</span><span id="viewToggleLabel">物件一覧</span></button>
       <button class="btn" id="fitBtn" type="button" title="登録した物件がすべて見えるように地図を調整">全物件を表示</button>
       <button class="btn btn-primary" id="openCsvBtn" type="button">＋ 物件を入力</button>
     </div>
