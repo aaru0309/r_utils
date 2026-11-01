@@ -135,7 +135,6 @@
 
 
 /* スマートフォンでは地図と物件一覧を1画面ずつ切り替えて表示 */
-.mobile-view-toggle { display:none; }
 .hamburger-icon { display:inline-block; font-size:18px; line-height:1; }
 @media (max-width:800px) {
   body { overflow:hidden; }
@@ -161,4 +160,190 @@
   .top-actions .btn { padding:8px 9px; font-size:11px; }
   .mobile-view-toggle { gap:5px; }
   .hamburger-icon { font-size:17px; }
+}
+
+
+/* ハザード / 周辺施設モード */
+.map-mode-panel{
+  position:absolute;
+  z-index:460;
+  top:14px;
+  right:14px;
+  width:min(330px, calc(100% - 28px));
+  pointer-events:none;
+}
+.map-mode-buttons{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  pointer-events:auto;
+}
+.map-mode-btn,
+.map-panel-action{
+  border:1px solid rgba(203,213,225,.95);
+  background:rgba(255,255,255,.97);
+  color:#1e293b;
+  border-radius:10px;
+  min-height:38px;
+  padding:8px 11px;
+  font-size:12px;
+  font-weight:800;
+  box-shadow:0 5px 18px rgba(15,23,42,.12);
+}
+.map-mode-btn[aria-pressed="true"]{
+  color:#fff;
+  background:#1d4ed8;
+  border-color:#1d4ed8;
+}
+.map-subpanel{
+  margin-top:8px;
+  padding:11px 12px;
+  border:1px solid rgba(203,213,225,.95);
+  border-radius:12px;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 8px 24px rgba(15,23,42,.14);
+  pointer-events:auto;
+  font-size:11px;
+  line-height:1.5;
+}
+.map-subpanel[hidden]{display:none!important;}
+.map-subpanel label{display:block;font-weight:800;margin-bottom:6px;}
+.map-subpanel select{
+  width:100%;
+  min-height:36px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  padding:6px 8px;
+  background:#fff;
+  color:#1e293b;
+}
+.map-subpanel p{margin:8px 0;color:#64748b;}
+.map-subpanel a{color:#2563eb;font-weight:700;text-decoration:none;}
+.map-panel-action{
+  width:100%;
+  box-shadow:none;
+  background:#f8fafc;
+}
+.poi-legend{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px 10px;
+  font-size:11px;
+}
+.poi-legend span{display:flex;align-items:center;gap:6px;}
+.poi-dot{
+  width:10px;height:10px;border-radius:999px;display:inline-block;flex:0 0 auto;
+}
+.poi-dot.supermarket{background:#16a34a;}
+.poi-dot.post{background:#dc2626;}
+.poi-dot.school{background:#7c3aed;}
+.poi-dot.convenience{background:#ea580c;}
+
+.poi-marker-wrap{background:transparent;border:0;}
+.poi-marker{
+  width:28px;height:28px;border-radius:999px;border:2px solid #fff;
+  display:grid;place-items:center;color:#fff;font-size:15px;font-weight:900;
+  box-shadow:0 2px 8px rgba(15,23,42,.28);
+}
+.poi-marker.supermarket{background:#16a34a;}
+.poi-marker.post{background:#dc2626;}
+.poi-marker.school{background:#7c3aed;}
+.poi-marker.convenience{background:#ea580c;}
+.poi-popup-title{font-size:13px;font-weight:800;margin-bottom:4px;}
+.poi-popup-meta{font-size:11px;color:#64748b;line-height:1.5;}
+
+@media(max-width:800px){
+  .map-mode-panel{
+    top:auto;
+    right:8px;
+    left:8px;
+    bottom:10px;
+    width:auto;
+  }
+  .map-mode-buttons{justify-content:flex-end;}
+  .map-mode-btn{min-height:36px;padding:7px 9px;font-size:11px;}
+  .map-subpanel{max-height:190px;overflow:auto;}
+}
+
+
+
+/* 物件一覧トグル・地図UI改善 */
+.view-toggle-btn{display:inline-flex;}
+.hamburger-icon{display:inline-block;font-size:18px;line-height:1;}
+
+.workspace.list-collapsed{
+  grid-template-columns:minmax(0,1fr) 0;
+}
+.workspace.list-collapsed .sidebar{
+  width:0;
+  min-width:0;
+  overflow:hidden;
+  border-left:0;
+  visibility:hidden;
+}
+.workspace .sidebar{
+  transition:width .18s ease, visibility .18s ease;
+}
+
+/* Leaflet左上のズームボタンと件数バッジが重ならないようにずらす */
+.map-badge{
+  left:58px;
+  top:14px;
+}
+
+/* ハザード凡例：コンパクト・半透明 */
+.hazard-legend{
+  position:absolute;
+  z-index:455;
+  left:14px;
+  bottom:18px;
+  width:min(135px, calc(100% - 28px));
+  background:rgba(255,255,255,.42);
+  border:1px solid rgba(203,213,225,.55);
+  border-radius:10px;
+  box-shadow:0 6px 18px rgba(15,23,42,.10);
+  padding:8px;
+  font-size:10px;
+  line-height:1.35;
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+.hazard-legend[hidden]{display:none!important;}
+.hazard-legend-title{
+  font-size:11px;
+  font-weight:800;
+  color:rgba(15,23,42,.55);
+  margin-bottom:5px;
+}
+.hazard-legend-row{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin:3px 0;
+  color:#111827;
+  font-weight:700;
+}
+.hazard-legend-color{
+  width:20px;
+  height:10px;
+  border-radius:2px;
+  border:1px solid rgba(15,23,42,.18);
+  flex:0 0 auto;
+  opacity:1;
+}
+.hazard-legend-note{
+  margin-top:5px;
+  padding-top:5px;
+  border-top:1px solid rgba(226,232,240,.45);
+  color:rgba(71,85,105,.45);
+  font-size:9px;
+}
+@media(max-width:800px){
+  .hazard-legend{
+    left:8px;
+    bottom:118px;
+    width:min(125px, calc(100% - 16px));
+    max-height:180px;
+    overflow:auto;
+  }
 }

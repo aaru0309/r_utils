@@ -35,7 +35,7 @@
       </div>
     </div>
     <div class="top-actions">
-      <button class="btn mobile-view-toggle" id="viewToggleBtn" type="button" aria-controls="mapView propertySidebar" aria-pressed="false" aria-label="物件一覧を表示"><span class="hamburger-icon" aria-hidden="true">☰</span><span id="viewToggleLabel">物件一覧</span></button>
+      <button class="btn view-toggle-btn" id="viewToggleBtn" type="button" aria-controls="mapView propertySidebar" aria-pressed="true" aria-label="物件一覧を閉じる"><span class="hamburger-icon" aria-hidden="true">☰</span><span id="viewToggleLabel">物件一覧を閉じる</span></button>
       <button class="btn" id="fitBtn" type="button" title="登録した物件がすべて見えるように地図を調整">全物件を表示</button>
       <button class="btn btn-primary" id="openCsvBtn" type="button">＋ 物件を入力</button>
     </div>
@@ -45,6 +45,39 @@
       <div id="map"></div>
       <div class="map-badge"><strong id="mapCount">0</strong>件の物件 <span>· ピンを押して詳細を見る</span></div>
       <div class="map-error" id="mapError" role="status">地図画像を取得できません。ネットワークやセキュリティ設定をご確認ください。</div>
+
+      <div class="hazard-legend" id="hazardLegend" hidden aria-label="ハザード凡例">
+        <div class="hazard-legend-title">ハザード凡例</div>
+        <div class="hazard-legend-body" id="hazardLegendBody"></div>
+      </div>
+
+      <div class="map-mode-panel" id="mapModePanel" aria-label="地図表示モード">
+        <div class="map-mode-buttons">
+          <button class="map-mode-btn" id="hazardModeBtn" type="button" aria-pressed="false">⚠ ハザード</button>
+          <button class="map-mode-btn" id="poiModeBtn" type="button" aria-pressed="false">◎ 周辺施設</button>
+        </div>
+        <div class="map-subpanel" id="hazardPanel" hidden>
+          <label for="hazardTypeSelect">ハザード種別</label>
+          <select id="hazardTypeSelect">
+            <option value="flood">洪水（想定最大規模）</option>
+            <option value="hightide">高潮</option>
+            <option value="tsunami">津波</option>
+            <option value="sediment">土砂災害</option>
+          </select>
+          <p>国の公開データを地図に重ねて表示します。地域によって未整備・未掲載の場合があります。</p>
+          <a href="https://disaportal.gsi.go.jp/" target="_blank" rel="noopener noreferrer">公式ハザードマップを開く ↗</a>
+        </div>
+        <div class="map-subpanel" id="poiPanel" hidden>
+          <div class="poi-legend">
+            <span><b class="poi-dot supermarket"></b>スーパー</span>
+            <span><b class="poi-dot post"></b>郵便</span>
+            <span><b class="poi-dot school"></b>学校</span>
+            <span><b class="poi-dot convenience"></b>コンビニ</span>
+          </div>
+          <p id="poiStatus">現在の地図中心から約2km以内を表示します。</p>
+          <button class="map-panel-action" id="reloadPoiBtn" type="button">この位置で再検索</button>
+        </div>
+      </div>
     </section>
     <aside class="sidebar" id="propertySidebar" aria-label="物件情報">
       <div class="side-head">

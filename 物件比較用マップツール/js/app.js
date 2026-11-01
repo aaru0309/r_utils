@@ -3,27 +3,45 @@
   const $ = id => document.getElementById(id);
   const STORAGE_KEY = 'property-map-data-v1';
 
-  // スマートフォンでは地図と物件一覧を切り替えて表示します。
+  // 物件一覧はPC・スマートフォン共通で開閉できます。
   const workspaceEl = document.querySelector('.workspace');
   const viewToggleBtn = $('viewToggleBtn');
   const viewToggleLabel = $('viewToggleLabel');
   const mobileViewQuery = window.matchMedia('(max-width: 800px)');
-  function applyMobileView(showList) {
+  let listVisible = true;
+
+  function applyListVisibility(visible) {
     if (!workspaceEl) return;
-    const listActive = mobileViewQuery.matches && showList;
-    workspaceEl.classList.toggle('show-list', listActive);
-    if (viewToggleLabel) viewToggleLabel.textContent = listActive ? '地図に戻る' : '物件一覧';
-    if (viewToggleBtn) {
-      viewToggleBtn.setAttribute('aria-pressed', String(listActive));
-      viewToggleBtn.setAttribute('aria-label', listActive ? '地図を表示' : '物件一覧を表示');
+    listVisible = !!visible;
+
+    if (mobileViewQuery.matches) {
+      workspaceEl.classList.toggle('show-list', listVisible);
+      workspaceEl.classList.toggle('list-collapsed', !listVisible);
+    } else {
+      workspaceEl.classList.remove('show-list');
+      workspaceEl.classList.toggle('list-collapsed', !listVisible);
     }
-    window.dispatchEvent(new CustomEvent('property-map-view-changed', { detail: { showList: listActive } }));
+
+    if (viewToggleLabel) viewToggleLabel.textContent = listVisible ? '物件一覧を閉じる' : '物件一覧を開く';
+    if (viewToggleBtn) {
+      viewToggleBtn.setAttribute('aria-pressed', String(listVisible));
+      viewToggleBtn.setAttribute('aria-label', listVisible ? '物件一覧を閉じる' : '物件一覧を開く');
+    }
+
+    window.dispatchEvent(new CustomEvent('property-map-view-changed', { detail: { showList: listVisible } }));
   }
-  if (viewToggleBtn) viewToggleBtn.addEventListener('click', () => applyMobileView(!workspaceEl.classList.contains('show-list')));
-  const handleMobileBreakpointChange = () => applyMobileView(false);
+
+  if (viewToggleBtn) {
+    viewToggleBtn.addEventListener('click', () => applyListVisibility(!listVisible));
+  }
+
+  const handleMobileBreakpointChange = () => {
+    applyListVisibility(listVisible);
+  };
   if (typeof mobileViewQuery.addEventListener === 'function') mobileViewQuery.addEventListener('change', handleMobileBreakpointChange);
   else if (typeof mobileViewQuery.addListener === 'function') mobileViewQuery.addListener(handleMobileBreakpointChange);
-  applyMobileView(false);
+
+  applyListVisibility(true);
 
   if (!window.L) {
     $('mapError').style.display = 'block';
@@ -47,7 +65,7 @@
     }
   ];
   const map = L.map('map', { zoomControl: true, minZoom: 5, maxZoom: 18 }).setView([35.1709, 136.8815], 12);
-  window.addEventListener('property-map-view-changed', event => { if (!event.detail.showList) setTimeout(() => map.invalidateSize(), 80); });
+  window.addEventListener('property-map-view-changed', () => { setTimeout(() => map.invalidateSize(), 100); });
   let activeTileLayer = null;
   let activeBasemapIndex = -1;
   let baseMapLoaded = false;
@@ -108,6 +126,279 @@
     }, 12000);
   }
   setBasemap(0);
+
+
+  // ===== ハザードマップ / 周辺施設モード =====
+  const hazardModeBtn = $('hazardModeBtn');
+  const poiModeBtn = $('poiModeBtn');
+  const hazardPanel = $('hazardPanel');
+  const poiPanel = $('poiPanel');
+  const hazardTypeSelect = $('hazardTypeSelect');
+  const reloadPoiBtn = $('reloadPoiBtn');
+  const poiStatus = $('poiStatus');
+
+  let hazardEnabled = false;
+  let poiEnabled = false;
+  let activeHazardLayers = [];
+  let poiLayerGroup = L.layerGroup().addTo(map);
+  let poiRequestToken = 0;
+
+  const HAZARD_ATTRIBUTION = '<a href="https://disaportal.gsi.go.jp/" target="_blank" rel="noopener">ハザードマップポータルサイト</a>';
+
+
+  const hazardLegend = $('hazardLegend');
+  const hazardLegendBody = $('hazardLegendBody');
+
+  const hazardLegendDefinitions = {
+    flood: {
+      title:'洪水 浸水深',
+      rows:[
+        ['#fff4b3','0.5m未満'],
+        ['#ffdf7e','0.5～3m'],
+        ['#f7a35c','3～5m'],
+        ['#e35d6a','5～10m'],
+        ['#8b2f73','10～20m'],
+        ['#4a1d6f','20m以上']
+      ],
+      note:'表示色は浸水深の目安です。'
+    },
+    hightide: {
+      title:'高潮 浸水深',
+      rows:[
+        ['#fff4b3','0.5m未満'],
+        ['#ffdf7e','0.5～3m'],
+        ['#f7a35c','3～5m'],
+        ['#e35d6a','5～10m'],
+        ['#8b2f73','10～20m'],
+        ['#4a1d6f','20m以上']
+      ],
+      note:'表示色は浸水深の目安です。'
+    },
+    tsunami: {
+      title:'津波 浸水深',
+      rows:[
+        ['#fff4b3','0.3m未満'],
+        ['#ffdf7e','0.3～1m'],
+        ['#f7a35c','1～2m'],
+        ['#e35d6a','2～5m'],
+        ['#8b2f73','5～10m'],
+        ['#4a1d6f','10m以上']
+      ],
+      note:'表示色は浸水深の目安です。'
+    },
+    sediment: {
+      title:'土砂災害',
+      rows:[
+        ['#fff100','警戒区域'],
+        ['#ff3b30','特別警戒区域']
+      ],
+      note:'土石流・急傾斜地の崩壊・地すべりを重ねて表示します。'
+    }
+  };
+
+  function updateHazardLegend() {
+    const def = hazardLegendDefinitions[hazardTypeSelect.value] || hazardLegendDefinitions.flood;
+    hazardLegendBody.innerHTML =
+      `<div style="font-weight:800;margin-bottom:5px">${escapeHtml(def.title)}</div>` +
+      def.rows.map(([color,label]) =>
+        `<div class="hazard-legend-row"><span class="hazard-legend-color" style="background:${color}"></span><span>${escapeHtml(label)}</span></div>`
+      ).join('') +
+      `<div class="hazard-legend-note">${escapeHtml(def.note)}<br>最終確認は公式ハザードマップ・自治体資料を利用してください。</div>`;
+  }
+
+  const hazardDefinitions = {
+    flood: {
+      label: '洪水（想定最大規模）',
+      urls: ['https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png']
+    },
+    hightide: {
+      label: '高潮',
+      urls: ['https://disaportaldata.gsi.go.jp/raster/03_hightide_l2_shinsuishin_data/{z}/{x}/{y}.png']
+    },
+    tsunami: {
+      label: '津波',
+      urls: ['https://disaportaldata.gsi.go.jp/raster/04_tsunami_newlegend_data/{z}/{x}/{y}.png']
+    },
+    sediment: {
+      label: '土砂災害',
+      urls: [
+        'https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png',
+        'https://disaportaldata.gsi.go.jp/raster/05_kyukeishakeikaikuiki/{z}/{x}/{y}.png',
+        'https://disaportaldata.gsi.go.jp/raster/05_jisuberikeikaikuiki/{z}/{x}/{y}.png'
+      ]
+    }
+  };
+
+  function clearHazardLayers() {
+    activeHazardLayers.forEach(layer => {
+      try { map.removeLayer(layer); } catch (_) {}
+    });
+    activeHazardLayers = [];
+  }
+
+  function applyHazardLayer() {
+    clearHazardLayers();
+    if (!hazardEnabled) return;
+    const def = hazardDefinitions[hazardTypeSelect.value] || hazardDefinitions.flood;
+    activeHazardLayers = def.urls.map(url => L.tileLayer(url, {
+      minZoom: 2,
+      maxZoom: 18,
+      maxNativeZoom: 17,
+      opacity: .68,
+      attribution: HAZARD_ATTRIBUTION,
+      crossOrigin: true
+    }).addTo(map));
+  }
+
+  function setHazardMode(enabled) {
+    hazardEnabled = !!enabled;
+    hazardModeBtn.setAttribute('aria-pressed', String(hazardEnabled));
+    hazardPanel.hidden = !hazardEnabled;
+    hazardLegend.hidden = !hazardEnabled;
+    if (hazardEnabled) updateHazardLegend();
+    applyHazardLayer();
+  }
+
+  const poiDefinitions = {
+    supermarket: { label:'スーパー', icon:'買', className:'supermarket' },
+    post: { label:'郵便', icon:'〒', className:'post' },
+    school: { label:'学校', icon:'学', className:'school' },
+    convenience: { label:'コンビニ', icon:'店', className:'convenience' }
+  };
+
+  function categoryForTags(tags = {}) {
+    if (tags.shop === 'supermarket') return 'supermarket';
+    if (tags.shop === 'convenience') return 'convenience';
+    if (tags.amenity === 'school') return 'school';
+    if (tags.amenity === 'post_office' || tags.amenity === 'post_box') return 'post';
+    return null;
+  }
+
+  function poiLatLon(el) {
+    if (Number.isFinite(Number(el.lat)) && Number.isFinite(Number(el.lon))) {
+      return [Number(el.lat), Number(el.lon)];
+    }
+    if (el.center && Number.isFinite(Number(el.center.lat)) && Number.isFinite(Number(el.center.lon))) {
+      return [Number(el.center.lat), Number(el.center.lon)];
+    }
+    return null;
+  }
+
+  function poiName(tags = {}, category) {
+    if (tags.name) return tags.name;
+    if (tags['name:ja']) return tags['name:ja'];
+    if (tags.brand) return tags.brand;
+    if (tags.amenity === 'post_box') return '郵便ポスト';
+    return poiDefinitions[category]?.label || '施設';
+  }
+
+  function renderPoiElements(elements) {
+    poiLayerGroup.clearLayers();
+    const seen = new Set();
+    let count = 0;
+
+    for (const el of elements || []) {
+      const category = categoryForTags(el.tags || {});
+      const latlon = poiLatLon(el);
+      if (!category || !latlon) continue;
+
+      const key = `${category}:${latlon[0].toFixed(6)}:${latlon[1].toFixed(6)}:${poiName(el.tags, category)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const def = poiDefinitions[category];
+      const icon = L.divIcon({
+        className:'poi-marker-wrap',
+        html:`<span class="poi-marker ${def.className}" title="${escapeHtml(def.label)}">${escapeHtml(def.icon)}</span>`,
+        iconSize:[28,28],
+        iconAnchor:[14,14],
+        popupAnchor:[0,-12]
+      });
+
+      const tags = el.tags || {};
+      const details = [];
+      if (tags['addr:full']) details.push(tags['addr:full']);
+      else {
+        const addr = [tags['addr:prefecture'], tags['addr:city'], tags['addr:suburb'], tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join('');
+        if (addr) details.push(addr);
+      }
+      if (tags.opening_hours) details.push('営業時間: ' + tags.opening_hours);
+
+      L.marker(latlon, { icon, keyboard:true })
+        .bindPopup(`<div class="poi-popup-title">${escapeHtml(poiName(tags, category))}</div><div class="poi-popup-meta">${escapeHtml(def.label)}${details.length ? '<br>' + details.map(escapeHtml).join('<br>') : ''}</div>`)
+        .addTo(poiLayerGroup);
+      count += 1;
+    }
+    return count;
+  }
+
+  async function fetchNearbyPois() {
+    if (!poiEnabled) return;
+    const token = ++poiRequestToken;
+    const center = map.getCenter();
+    const radius = 2000;
+
+    poiStatus.textContent = '周辺施設を検索しています…';
+
+    const query = `[out:json][timeout:18];
+(
+  nwr["shop"="supermarket"](around:${radius},${center.lat},${center.lng});
+  nwr["shop"="convenience"](around:${radius},${center.lat},${center.lng});
+  nwr["amenity"="post_office"](around:${radius},${center.lat},${center.lng});
+  nwr["amenity"="post_box"](around:${radius},${center.lat},${center.lng});
+  nwr["amenity"="school"](around:${radius},${center.lat},${center.lng});
+);
+out center tags;`;
+
+    const endpoints = [
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter'
+    ];
+
+    let lastError = null;
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(endpoint, {
+          method:'POST',
+          headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+          body:'data=' + encodeURIComponent(query)
+        });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const data = await response.json();
+        if (token !== poiRequestToken || !poiEnabled) return;
+        const count = renderPoiElements(Array.isArray(data.elements) ? data.elements : []);
+        poiStatus.textContent = `地図中心から約2km以内：${count}件を表示中。地図を移動したら「この位置で再検索」を押してください。`;
+        return;
+      } catch (e) {
+        lastError = e;
+        console.warn('周辺施設の取得に失敗:', endpoint, e);
+      }
+    }
+
+    if (token !== poiRequestToken || !poiEnabled) return;
+    poiLayerGroup.clearLayers();
+    poiStatus.textContent = '周辺施設を取得できませんでした。通信状況を確認して再検索してください。';
+    if (lastError) console.warn(lastError);
+  }
+
+  function setPoiMode(enabled) {
+    poiEnabled = !!enabled;
+    poiModeBtn.setAttribute('aria-pressed', String(poiEnabled));
+    poiPanel.hidden = !poiEnabled;
+    if (poiEnabled) fetchNearbyPois();
+    else {
+      ++poiRequestToken;
+      poiLayerGroup.clearLayers();
+      poiStatus.textContent = '現在の地図中心から約2km以内を表示します。';
+    }
+  }
+
+  hazardModeBtn.addEventListener('click', () => setHazardMode(!hazardEnabled));
+  poiModeBtn.addEventListener('click', () => setPoiMode(!poiEnabled));
+  hazardTypeSelect.addEventListener('change', () => { updateHazardLegend(); applyHazardLayer(); });
+  reloadPoiBtn.addEventListener('click', fetchNearbyPois);
+
+  // ===== 追加モードここまで =====
 
   let properties = loadProperties();
   let markerById = new Map();
